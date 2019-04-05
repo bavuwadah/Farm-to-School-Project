@@ -1,3 +1,21 @@
+#####################################################
+#                                                   #
+# Farm to School Project System - OLS Regressions   #
+#                                                   #
+#                                                   #
+#####################################################
+
+library(readr)
+library(devtools)
+install_github("dgrtwo/broom")
+library(broom)
+library(plm)
+library(sandwich)
+
+
+# Read data
+FTS.Data <- read.csv("Newest/FTS.Data2.csv")
+View(FTS_Data2)
 
 FTS.Data <- read.csv("/Users/Hanh/Desktop/Research/Farm to School Program/Newest/Entire Data.csv", header = T)
 FTS.Data2 <- read.csv("/Users/Hanh/Desktop/Research/Farm to School Program/Newest/FTS.csv", header = T)
@@ -40,14 +58,12 @@ FTS.fit <- lm(salad.ratio ~ FTS + Florida + FTS.Start + Mandarin + Chef + Fajita
               + Offered.Sandwich + Offered.Other + school, data=FTS.Data)
 
 summary(FTS.fit)
+vcov_school <- coeftest(FTS.fit, vcov.=vcovBK(FTS.fit, type="HC1"))
 vcov_school <- cluster.vcov(FTS.fit, FTS.Data$site)
 coeftest(FTS.fit, vcov_school)
 FTS.fit1 <- coeftest(FTS.fit, df = Inf, vcov = vcovHC)
 coeftest(FTS.fit, df = Inf, vcov = vcovHAC)
 
-library(devtools)
-install_github("dgrtwo/broom")
-library(broom)
 
 ####Start Of FTS Program
 FTS.fit2 <- lm(salad ~ FTS + Florida + FTS.Start + Mandarin + Chef  + Fajita 
@@ -55,7 +71,22 @@ FTS.fit2 <- lm(salad ~ FTS + Florida + FTS.Start + Mandarin + Chef  + Fajita
                + Offered.HB + Offered.Italian + Offered.Mexican + Offered.Pizza 
                + Offered.Sandwich + Offered.Other + school, data=FTS.Data)
 
-summary(FTS.fit2)
+FTS.fit2 <- plm(salad ~ FTS + Florida + FTS.Start + Mandarin + Chef  + Fajita 
+               + Chicken.Tender + Salad.LO + Chicken.Smacker + Chicken.Chop 
+               + Offered.HB + Offered.Italian + Offered.Mexican + Offered.Pizza 
+               + Offered.Sandwich + Offered.Other + school, data=FTS.Data,
+               model = "within")
+
+FTS.fit3 <- lm(salad ~ FTS + Florida + FTS.Start + Mandarin + Chef  + Fajita 
+               + Chicken.Tender + Salad.LO + Chicken.Smacker + Chicken.Chop 
+               + Offered.HB + Offered.Italian + Offered.Mexican + Offered.Pizza 
+               + Offered.Sandwich + Offered.Other + school, data=FTS.Data)
+
+summary(FTS.fit3)
+
+vcovPC(FTS.fit3, cluster = ~ school + date2, pairwise = TRUE)
+vcov_school <- coeftest(FTS.fit3, vcov.=vcovPC(FTS.fit3, cluster = ~ school + date2, pairwise = TRUE))
+vcov_school <- coeftest(FTS.fit2, vcov.=vcovBK(FTS.fit2, type="HC1"))
 vcov_school <- cluster.vcov(FTS.fit2, FTS.Data$site)
 coeftest(FTS.fit2, vcov_school)
 FTS.fit3 <- coeftest(FTS.fit2, df = Inf, vcov = vcovHC)
